@@ -23,6 +23,31 @@ replace [] x y z = []
 replace (a:as) x y z | ((a:as) !! 0 !! 0)==x && ((a:as) !! 0 !! 1)==y = ([x, y, z] : replace as x y z)
                      | otherwise = (a : replace as x y z)
 
+columnFull :: Board -> Int -> Bool
+columnFull a y | a !! ((y-1)) !! 2 == 0 = False
+               | otherwise = True
+
+checkWinRow :: Board -> Int -> Int -> Bool
+checkWinRow a z r  | (a!!(r+0)!!2)==z && (a!!(r+1)!!2)==z && (a!!(r+2)!!2)==z && (a!!(r+3)!!2)==z = True
+                   | (a!!(r+1)!!2)==z && (a!!(r+2)!!2)==z && (a!!(r+3)!!2)==z && (a!!(r+4)!!2)==z = True
+                   | (a!!(r+2)!!2)==z && (a!!(r+3)!!2)==z && (a!!(r+4)!!2)==z && (a!!(r+5)!!2)==z = True
+                   | (a!!(r+3)!!2)==z && (a!!(r+4)!!2)==z && (a!!(r+5)!!2)==z && (a!!(r+6)!!2)==z = True
+                   | otherwise = False
+
+checkWinDiagLR :: Board -> Int -> Int -> Bool
+checkWinDiagLR a z d | (a!!(d)!!2)==z && (a!!(d-6)!!2)==z && (a!!(d-12)!!2)==z && (a!!(d-18)!!2)==z = True
+                     | otherwise = False
+
+checkWinDiagRL :: Board -> Int -> Int -> Bool
+checkWinDiagRL a z d | (a!!(d)!!2)==z && (a!!(d-8)!!2)==z && (a!!(d-16)!!2)==z && (a!!(d-24)!!2)==z = True
+                     | otherwise = False
+
+checkWinCol :: Board -> Int -> Int -> Bool
+checkWinCol a z c | (a!!(c+0)!!2)==z && (a!!(c+7)!!2)==z && (a!!(c+14)!!2)==z && (a!!(c+21)!!2)==z = True
+                  | (a!!(c+7)!!2)==z && (a!!(c+14)!!2)==z && (a!!(c+21)!!2)==z && (a!!(c+28)!!2)==z = True
+                  | (a!!(c+14)!!2)==z && (a!!(c+21)!!2)==z && (a!!(c+28)!!2)==z && (a!!(c+35)!!2)==z = True
+                  | otherwise = False
+
 inputCol :: IO Int
 inputCol = do
     int <- getLine
@@ -43,12 +68,13 @@ coords= [ [1,1,0], [1,2,0], [1,3,0], [1,4,0], [1,5,0], [1,6,0], [1,7,0],
 startPlayer=1
 
 start = do
+        printBoard coords
         play coords startPlayer
 
 play board player = do
             putStrLn ("Player " ++ (toString player) ++ ": What column do you want to place?")
             column <- inputCol
-            if column > 7 || column < 1
+            if (column > 7 || column < 1) || (columnFull board column)
             then do
                 putStrLn ("Try a different column!")
                 play board player
@@ -56,10 +82,41 @@ play board player = do
                 let board2 = board
                 let board2 = updateBoard board player column
                 printBoard board2
-                if player == 1
+                if not ((checkWinRow board2 player 0)==True
+                       || (checkWinRow board2 player 7)==True
+                       || (checkWinRow board2 player 14)==True
+                       || (checkWinRow board2 player 21)==True
+                       || (checkWinRow board2 player 28)==True
+                       || (checkWinRow board2 player 35)==True
+                       || (checkWinRow board2 player 35)==True
+
+                       || (checkWinDiagLR board2 player 38)==True || (checkWinDiagLR board2 player 37)==True || (checkWinDiagLR board2 player 36)==True || (checkWinDiagLR board2 player 35)==True
+                       || (checkWinDiagLR board2 player 31)==True || (checkWinDiagLR board2 player 30)==True || (checkWinDiagLR board2 player 29)==True || (checkWinDiagLR board2 player 28)==True
+                       || (checkWinDiagLR board2 player 24)==True || (checkWinDiagLR board2 player 23)==True || (checkWinDiagLR board2 player 22)==True || (checkWinDiagLR board2 player 21)==True
+
+                       || (checkWinDiagRL board2 player 38)==True || (checkWinDiagRL board2 player 39)==True || (checkWinDiagRL board2 player 40)==True || (checkWinDiagRL board2 player 41)==True
+                       || (checkWinDiagRL board2 player 31)==True || (checkWinDiagRL board2 player 32)==True || (checkWinDiagRL board2 player 33)==True || (checkWinDiagRL board2 player 34)==True
+                       || (checkWinDiagRL board2 player 24)==True || (checkWinDiagRL board2 player 25)==True || (checkWinDiagRL board2 player 26)==True || (checkWinDiagRL board2 player 27)==True
+
+                       || (checkWinCol board2 player 0)==True
+                       || (checkWinCol board2 player 1)==True
+                       || (checkWinCol board2 player 2)==True
+                       || (checkWinCol board2 player 3)==True
+                       || (checkWinCol board2 player 4)==True
+                       || (checkWinCol board2 player 5)==True
+                       || (checkWinCol board2 player 6)==True
+                       )
                 then do
-                    let player = 2
-                    play board2 player
-                else do
-                    let player = 1
-                    play board2 player
+                    if player == 1
+                    then do
+                        let player = 2
+                        play board2 player
+                    else do
+                        let player = 1
+                        play board2 player
+                 else do
+                      putStrLn (" _______________________________________________________ ")
+                      putStrLn ("|                                                       |")
+                      putStrLn ("|               Player " ++ (toString player) ++ " is the WINNER!!!               |")
+                      putStrLn ("|_______________________________________________________|")
+                      putStrLn ("\n")
